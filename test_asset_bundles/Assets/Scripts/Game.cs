@@ -6,7 +6,7 @@ public class Game : MonoBehaviour
 {
     [SerializeField] private Config _config;
     [SerializeField] private GameObject _loaderGameObject;
-    [SerializeField] private GameController _gameController;
+    [SerializeField] private GameViewController _gameViewController;
 
     private DataDownloader dataDownloader = new DataDownloader();
     private GameService _gameService;
@@ -48,10 +48,11 @@ public class Game : MonoBehaviour
         var stringsData = _gameService.GetStringsData(stringsDataBytes);
         var localStringsData = new LocalStringsData(stringsData);
 
-        _dataStorage = new DataStorage(localSettingsData, localStringsData);
+        var buttonImage = await _gameService.LoadButtonImage();
+        _dataStorage = new DataStorage(localSettingsData, localStringsData, buttonImage);
         _gameService.SetDataStorage(_dataStorage);
 
-        _gameController.SetDataStorage(_dataStorage);
+        _gameViewController.SetDataStorage(_dataStorage);
 
         await UniTask.Delay(TimeSpan.FromSeconds(3), ignoreTimeScale: false);
 

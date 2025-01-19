@@ -30,6 +30,12 @@ public class GameView : MonoBehaviour
         _greetingsField.text = greetings;
     }
 
+    public void SetButtonImage(Texture2D buttonImage)
+    {
+        var image = _startingButton.gameObject.GetComponent<RawImage>();
+        image.texture = buttonImage;
+    }
+
     public void SetData(SettingsData data)
     {
         _startingNumberField.text = data.StartingNumber.ToString();

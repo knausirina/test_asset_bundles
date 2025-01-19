@@ -1,20 +1,29 @@
-﻿using System.Collections;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameService
 {
     private readonly Config _config;
     private DataStorage _dataStorage;
     private ISaverUserData _saverRemoteData;
+    private AssetBundlesService _assetBundlesService;
 
     public GameService(Config config)
     {
         _config = config;
+        _assetBundlesService = new AssetBundlesService();
     }
 
     public void SetDataStorage(DataStorage dataStorage)
     {
         _dataStorage = dataStorage;
+    }
+
+    public async UniTask<Texture2D> LoadButtonImage()
+    {
+        return await _assetBundlesService.LoadImage(_config.AssetBundlePath);
     }
 
     public UserData GetUserData()

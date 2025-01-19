@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingsFilePath: http://utyashevai.temp.swtest.ru/Settings.json
   _stringsFilePath: http://utyashevai.temp.swtest.ru/Strings.json
-  _assetBundlePath: 
+  _assetBundlePath: http://utyashevai.temp.swtest.ru/testbundle
   _userFileName: UserData.dat

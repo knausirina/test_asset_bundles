@@ -2,32 +2,33 @@
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
-public class SaverRemoteData : ISaverRemoteData
+public class SaverUserData : ISaverUserData
 {
     private Config _config;
 
-    public SaverRemoteData(Config config)
+    public SaverUserData(Config config)
     {
         _config = config;
     }
 
-    public void SaveData(LocalData localData)
+    public void SaveData(LocalSettingsData settingsData)
     {
         var binaryFormatter = new BinaryFormatter();
         var file = File.Create(GetPath());
-        var data = new RemoteData();
-        data.StartingNumber = localData.StartingNumber;
+        var data = new UserData();
+        data.StartingNumber = settingsData.StartingNumber;
         binaryFormatter.Serialize(file, data);
         file.Close();
     }
 
-    public RemoteData LoadData()
+    public UserData LoadData()
     {
-        if (File.Exists(Application.persistentDataPath + _config.UserFileName))
+        var path = GetPath();
+        if (File.Exists(path))
         {
             var binaryFormatter = new BinaryFormatter();
             var file = File.Open(GetPath(), FileMode.Open);
-            var remoteData = (RemoteData)binaryFormatter.Deserialize(file);
+            var remoteData = (UserData)binaryFormatter.Deserialize(file);
             file.Close();
             return remoteData;
         }

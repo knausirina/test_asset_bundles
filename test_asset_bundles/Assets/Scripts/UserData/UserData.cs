@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 
 [Serializable]
-public class RemoteData
+public class UserData
 {
     public int StartingNumber;
 }

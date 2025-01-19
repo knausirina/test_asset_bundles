@@ -1,20 +1,21 @@
 using Cysharp.Threading.Tasks;
 using System;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
     [SerializeField] private Config _config;
     [SerializeField] private GameObject _loaderGameObject;
+    [SerializeField] private GameController _gameController;
 
     private DataDownloader dataDownloader = new DataDownloader();
-    private ISaverRemoteData saverRemoteData;
+    private GameService _gameService;
+    private DataStorage _dataStorage;
 
     private void Awake()
     {
+        _gameService = new GameService(_config);
+
         Load();
     }
 
@@ -22,19 +23,35 @@ public class Game : MonoBehaviour
     {
         ToggleLoader(true);
 
-
-        saverRemoteData = new SaverRemoteData(_config);
-        var remoteData = saverRemoteData.LoadData();
+        var remoteData = _gameService.GetUserData();
+        LocalSettingsData localSettingsData = null;
 
         var token = this.GetCancellationTokenOnDestroy();
-        var loadSettingsTask = dataDownloader.DownloadFile(_config.SettingsFilePath,
-            (error) => OnError("Settings", error),
-            token);
-        var loadStringsTask = dataDownloader.DownloadFile(_config.StringsFilePath,
-            (error) => OnError("Strings", error),
-            token);
 
-        var (settingsTask, stringsTask) = await UniTask.WhenAll(loadSettingsTask, loadStringsTask);
+        if (remoteData == null)
+        {
+            var settingsDataBytes = await dataDownloader.DownloadFile(_config.SettingsFilePath,
+            (error) => OnError("Settings", error), token);
+
+            var remoteSettingsData = _gameService.GetSettingsData(settingsDataBytes);
+
+            localSettingsData = new LocalSettingsData(remoteSettingsData);
+        }
+        else
+        {
+            localSettingsData = new LocalSettingsData(remoteData.StartingNumber);
+        }
+       
+        var stringsDataBytes = await dataDownloader.DownloadFile(_config.StringsFilePath,
+            (error) => OnError("Strings", error), token);
+
+        var stringsData = _gameService.GetStringsData(stringsDataBytes);
+        var localStringsData = new LocalStringsData(stringsData);
+
+        _dataStorage = new DataStorage(localSettingsData, localStringsData);
+        _gameService.SetDataStorage(_dataStorage);
+
+        _gameController.SetDataStorage(_dataStorage);
 
         await UniTask.Delay(TimeSpan.FromSeconds(3), ignoreTimeScale: false);
 
@@ -49,5 +66,10 @@ public class Game : MonoBehaviour
     private void OnError(string fileName, string error)
     {
         Debug.Log($"Error fileName = {fileName} error = {error}");
+    }
+
+    private void OnDestroy()
+    {
+        _gameService.SaveUserData();
     }
 }

@@ -28,6 +28,7 @@ public class Game : MonoBehaviour
 
         if (isClearOldData)
         {
+            Caching.ClearCache();
             _saverRemoteData.ClearData();
         }
 

@@ -1,14 +1,12 @@
 ﻿using Cysharp.Threading.Tasks;
-using System.Collections;
+using System.Threading;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameService
 {
     private readonly Config _config;
-    private DataStorage _dataStorage;
-    private ISaverUserData _saverRemoteData;
     private AssetBundlesService _assetBundlesService;
+    private DataDownloader _dataDownloader = new DataDownloader();
 
     public GameService(Config config)
     {
@@ -16,39 +14,37 @@ public class GameService
         _assetBundlesService = new AssetBundlesService();
     }
 
-    public void SetDataStorage(DataStorage dataStorage)
+    public async UniTask<Texture2D> LoadButtonImage(bool isNewLoad = false)
     {
-        _dataStorage = dataStorage;
+        return await _assetBundlesService.LoadImage(_config.AssetBundlePath, isNewLoad);
     }
 
-    public async UniTask<Texture2D> LoadButtonImage()
+    public async UniTask<LocalSettingsData> GetSettingsData(CancellationToken token)
     {
-        return await _assetBundlesService.LoadImage(_config.AssetBundlePath);
-    }
+        var settingsDataBytes = await _dataDownloader.DownloadFile(_config.SettingsFilePath,
+            (error) => OnError("Settings", error), token);
 
-    public UserData GetUserData()
-    {
-        _saverRemoteData = new SaverUserData(_config);
-        var remoteData = _saverRemoteData.LoadData();
-        return remoteData;
-    }
-
-    public void SaveUserData()
-    {
-        _saverRemoteData.SaveData(_dataStorage.LocalSettingsData);
-    }
-
-    public SettingsData GetSettingsData(byte[] data)
-    {
-        var stringValue = System.Text.Encoding.UTF8.GetString(data);
+        var stringValue = System.Text.Encoding.UTF8.GetString(settingsDataBytes);
         var settingsData = JsonUtility.FromJson<SettingsData>(stringValue);
-        return settingsData;
+
+        var localSettingsData = new LocalSettingsData(settingsData);
+        return localSettingsData;
     }
 
-    public StringsData GetStringsData(byte[] data)
+    public async UniTask<LocalStringsData> GetStringsData(CancellationToken token)
     {
-        var stringValue = System.Text.Encoding.UTF8.GetString(data);
+        var stringsDataBytes = await _dataDownloader.DownloadFile(_config.StringsFilePath,
+            (error) => OnError("Strings", error), token);
+
+        var stringValue = System.Text.Encoding.UTF8.GetString(stringsDataBytes);
         var stringsData = JsonUtility.FromJson<StringsData>(stringValue);
-        return stringsData;
+
+        var localStringsData = new LocalStringsData(stringsData);
+        return localStringsData;
+    }
+
+    private void OnError(string fileName, string error)
+    {
+        Debug.Log($"Error fileName = {fileName} error = {error}");
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class GameView : MonoBehaviour
 {
     public Action IncrementStartingAction;
-    public Action UpateDataAction;
+    public Action UpdateDataAction;
 
     [SerializeField] private TMP_Text _startingNumberField;
     [SerializeField] private TMP_Text _greetingsField;
@@ -48,7 +48,7 @@ public class GameView : MonoBehaviour
 
     private void OnUpdateButton()
     {
-        UpateDataAction?.Invoke();
+        UpdateDataAction?.Invoke();
     }
 
     private void OnDestroy()

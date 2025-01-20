@@ -20,8 +20,6 @@ public class DataDownloader
             return null;
         }
 
-        Debug.Log("result " + unityWebRequest.downloadHandler.text);
-
         var results = unityWebRequest.downloadHandler.data;
 
         string result = System.Text.Encoding.UTF8.GetString(results);

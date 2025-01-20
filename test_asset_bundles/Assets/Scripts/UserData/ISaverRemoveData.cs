@@ -5,4 +5,6 @@ public interface ISaverUserData
 {
     public void SaveData(LocalSettingsData data);
     public UserData LoadData();
+
+    public void ClearData();
 }

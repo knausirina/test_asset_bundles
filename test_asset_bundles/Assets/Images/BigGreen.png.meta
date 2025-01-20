@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 06f5327c8a8659b44aa589fd6c0f6660
+guid: 7194b907763190b4ab82436aaba93472
 AssetOrigin:
   serializedVersion: 1
   productId: 97516
   packageName: 371 Simple Buttons Pack
   packageVersion: 1.0
-  assetPath: Assets/Simple Buttons/Big Buttons/BigLigthBlue.png
+  assetPath: Assets/Simple Buttons/Big Buttons/BigGreen.png
   uploadId: 194640
 TextureImporter:
   internalIDToNameTable: []
@@ -133,5 +133,5 @@ TextureImporter:
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
-  assetBundleName: testbundle
+  assetBundleName: 
   assetBundleVariant: 

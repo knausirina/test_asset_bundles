@@ -11,52 +11,55 @@ public class Game : MonoBehaviour
     private DataDownloader dataDownloader = new DataDownloader();
     private GameService _gameService;
     private DataStorage _dataStorage;
+    private ISaverUserData _saverRemoteData;
 
     private void Awake()
     {
         _gameService = new GameService(_config);
 
-        Load();
+        Load(false);
+
+        _gameViewController.UpdateDataAction += UpdateDataAction;
     }
 
-    private async void Load()
+    private async void Load(bool isClearOldData)
     {
         ToggleLoader(true);
 
-        var remoteData = _gameService.GetUserData();
+        if (isClearOldData)
+        {
+            _saverRemoteData.ClearData();
+        }
+
+        var remoteData = GetUserData();
         LocalSettingsData localSettingsData = null;
 
         var token = this.GetCancellationTokenOnDestroy();
 
         if (remoteData == null)
         {
-            var settingsDataBytes = await dataDownloader.DownloadFile(_config.SettingsFilePath,
-            (error) => OnError("Settings", error), token);
-
-            var remoteSettingsData = _gameService.GetSettingsData(settingsDataBytes);
-
-            localSettingsData = new LocalSettingsData(remoteSettingsData);
+            localSettingsData = await _gameService.GetSettingsData(token);
         }
         else
         {
             localSettingsData = new LocalSettingsData(remoteData.StartingNumber);
         }
-       
-        var stringsDataBytes = await dataDownloader.DownloadFile(_config.StringsFilePath,
-            (error) => OnError("Strings", error), token);
 
-        var stringsData = _gameService.GetStringsData(stringsDataBytes);
-        var localStringsData = new LocalStringsData(stringsData);
+        var localStringsData = await _gameService.GetStringsData(token);
 
-        var buttonImage = await _gameService.LoadButtonImage();
+        var buttonImage = await _gameService.LoadButtonImage(isClearOldData);
         _dataStorage = new DataStorage(localSettingsData, localStringsData, buttonImage);
-        _gameService.SetDataStorage(_dataStorage);
 
-        _gameViewController.SetDataStorage(_dataStorage);
+        _gameViewController.Construct(_gameService, _dataStorage);
 
         await UniTask.Delay(TimeSpan.FromSeconds(3), ignoreTimeScale: false);
 
         ToggleLoader(false);
+    }
+
+    private void UpdateDataAction()
+    {
+        Load(true);
     }
 
     private void ToggleLoader(bool isShowLoader)
@@ -64,13 +67,21 @@ public class Game : MonoBehaviour
         _loaderGameObject.SetActive(isShowLoader);
     }
 
-    private void OnError(string fileName, string error)
-    {
-        Debug.Log($"Error fileName = {fileName} error = {error}");
-    }
-
     private void OnDestroy()
     {
-        _gameService.SaveUserData();
+        SaveData();
+        _gameViewController.UpdateDataAction -= UpdateDataAction;
+    }
+
+    public UserData GetUserData()
+    {
+        _saverRemoteData = new SaverUserData(_config);
+        var remoteData = _saverRemoteData.LoadData();
+        return remoteData;
+    }
+
+    private void SaveData()
+    {
+        _saverRemoteData.SaveData(_dataStorage.LocalSettingsData);
     }
 }

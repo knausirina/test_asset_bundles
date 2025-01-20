@@ -35,6 +35,11 @@ public class SaverUserData : ISaverUserData
         return null;
     }
 
+    public void ClearData()
+    {
+        File.Delete(GetPath());
+    }
+
     private string GetPath()
     {
         return Application.persistentDataPath + Path.DirectorySeparatorChar + _config.UserFileName;

@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 public class SaverUserData : ISaverUserData
 {
-    private Config _config;
+    private readonly Config _config;
 
     public SaverUserData(Config config)
     {
@@ -14,11 +15,13 @@ public class SaverUserData : ISaverUserData
     public void SaveData(LocalSettingsData settingsData)
     {
         var binaryFormatter = new BinaryFormatter();
-        var file = File.Create(GetPath());
-        var data = new UserData();
-        data.StartingNumber = settingsData.StartingNumber;
-        binaryFormatter.Serialize(file, data);
-        file.Close();
+        using (var file = File.Create(GetPath()))
+        {
+            var data = new UserData();
+            data.StartingNumber = settingsData.StartingNumber;
+            binaryFormatter.Serialize(file, data);
+            file.Close();
+        }
     }
 
     public UserData LoadData()
@@ -27,10 +30,12 @@ public class SaverUserData : ISaverUserData
         if (File.Exists(path))
         {
             var binaryFormatter = new BinaryFormatter();
-            var file = File.Open(GetPath(), FileMode.Open);
-            var remoteData = (UserData)binaryFormatter.Deserialize(file);
-            file.Close();
-            return remoteData;
+            using (var file = File.Open(GetPath(), FileMode.Open))
+            {
+                var remoteData = (UserData)binaryFormatter.Deserialize(file);
+                file.Close();
+                return remoteData;
+            }
         }
         return null;
     }

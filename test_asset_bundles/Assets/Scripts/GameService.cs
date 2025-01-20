@@ -1,4 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -24,8 +26,21 @@ public class GameService
         var settingsDataBytes = await _dataDownloader.DownloadFile(_config.SettingsFilePath,
             (error) => OnError("Settings", error), token);
 
-        var stringValue = System.Text.Encoding.UTF8.GetString(settingsDataBytes);
-        var settingsData = JsonUtility.FromJson<SettingsData>(stringValue);
+        if (settingsDataBytes == null)
+        {
+            return null;
+        }
+
+        SettingsData settingsData;
+        try
+        {
+            var stringValue = System.Text.Encoding.UTF8.GetString(settingsDataBytes);
+            settingsData = JsonUtility.FromJson<SettingsData>(stringValue);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
 
         var localSettingsData = new LocalSettingsData(settingsData);
         return localSettingsData;
@@ -36,8 +51,21 @@ public class GameService
         var stringsDataBytes = await _dataDownloader.DownloadFile(_config.StringsFilePath,
             (error) => OnError("Strings", error), token);
 
-        var stringValue = System.Text.Encoding.UTF8.GetString(stringsDataBytes);
-        var stringsData = JsonUtility.FromJson<StringsData>(stringValue);
+        if (stringsDataBytes == null)
+        {
+            return null;
+        }
+
+        StringsData stringsData;
+        try
+        {
+            var stringValue = System.Text.Encoding.UTF8.GetString(stringsDataBytes);
+            stringsData = JsonUtility.FromJson<StringsData>(stringValue);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
 
         var localStringsData = new LocalStringsData(stringsData);
         return localStringsData;
